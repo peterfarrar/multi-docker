@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+  before_install:
+    - docker build -t peterfarrar/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run peterfarrar/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t peterfarrar/multi-client ./client
+  - docker build -t peterfarrar/multi-server ./server
+  - docker build -t peterfarrar/multi-nginx ./nginx
+  - docker build -t peterfarrar/multi-worker ./worker
+  # Log into docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push these images to dockerhub
+  - docker push peterfarrar/multi-client
+  - docker push peterfarrar/multi-server
+  - docker push peterfarrar/multi-nginx
+  - docker push peterfarrar/multi-worker
